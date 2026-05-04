@@ -1,0 +1,35 @@
+hydra:
+  searchpath:
+    - file://${oc.env:VERL_CONFIG_PATH,verl/trainer/config}
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+
+reward_model:
+
+  reward_kwargs:
+
+    acc_scale_range: [0, 1.0]
+
+    format_scale_range: [0, 1.0]
+
+
+data:
+
+  custom_cls:
+
+    path: file://${oc.env:CLAIMDIFF_RECIPE_PATH,recipe}/caption_dataset.py
+
+    name: CaptionRLHFDataset
+
+
+trainer:
+  trajectory_data_dir: "./trajectories"
+
+  filter_overlong_mask: false
+
+  filter_zero_reward: true
+
+do_eval: false
