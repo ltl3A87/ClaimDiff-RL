@@ -4,35 +4,44 @@ Claim-level Differential Reward for Vision-Language Caption RL.
 
 ClaimDiff-RL improves image caption quality through reinforcement learning with a **claim-level differential reward**. Instead of scoring captions holistically, it decomposes the comparison between a model's caption and a reference caption into atomic **claim-level differences**, judges each against the image using a multimodal LLM (Gemini), and aggregates per-claim verdicts into a fine-grained reward signal for GRPO/PPO training.
 
+<p align="center">
+  <img src="assets/ClaimDiff_RL_teaser.png" width="100%" alt="ClaimDiff-RL Teaser">
+</p>
+
+## TODO
+
+- [ ] Release benchmark evaluation suite
+- [ ] Release model weights
+
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                       Training Loop (verl)                      │
-│                                                                 │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────────────────┐   │
-│  │  Actor    │───>│ Rollout  │───>│  Remote Reward Manager   │   │
-│  │ (Qwen3-VL│    │ (SGLang) │    │  (sends to reward server)│   │
-│  └──────────┘    └──────────┘    └────────────┬─────────────┘   │
-│                                               │                 │
-└───────────────────────────────────────────────┼─────────────────┘
-                                                │ HTTP
-                                    ┌───────────▼───────────┐
-                                    │   Reward Server       │
-                                    │   (FastAPI)           │
-                                    │                       │
-                                    │  ┌─────────────────┐  │
-                                    │  │ ClaimDiff        │  │
-                                    │  │ Verifier         │  │
-                                    │  │                  │  │
-                                    │  │ 1. Extract claims│  │
-                                    │  │ 2. Compare A↔B   │  │
-                                    │  │ 3. Judge via     │  │
-                                    │  │    Gemini+Image  │  │
-                                    │  │ 4. Aggregate     │  │
-                                    │  │    reward        │  │
-                                    │  └─────────────────┘  │
-                                    └───────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                       Training Loop (verl)                        │
+│                                                                   │
+│  ┌────────────┐    ┌──────────┐    ┌──────────────────────────┐   │
+│  │   Actor    │───>│ Rollout  │───>│  Remote Reward Manager   │   │
+│  │ (Qwen3-VL) │    │ (SGLang) │    │ (sends to reward server) │   │
+│  └────────────┘    └──────────┘    └────────────┬─────────────┘   │
+│                                                 │                 │
+└─────────────────────────────────────────────────┼─────────────────┘
+                                                  │ HTTP
+                                     ┌────────────▼───────────┐
+                                     │   Reward Server        │
+                                     │   (FastAPI)            │
+                                     │                        │
+                                     │  ┌──────────────────┐  │
+                                     │  │ ClaimDiff        │  │
+                                     │  │ Verifier         │  │
+                                     │  │                  │  │
+                                     │  │ 1. Extract claims│  │
+                                     │  │ 2. Compare A↔B   │  │
+                                     │  │ 3. Judge via     │  │
+                                     │  │    Gemini+Image  │  │
+                                     │  │ 4. Aggregate     │  │
+                                     │  │    reward        │  │
+                                     │  └──────────────────┘  │
+                                     └────────────────────────┘
 ```
 
 **Reward flow:**
